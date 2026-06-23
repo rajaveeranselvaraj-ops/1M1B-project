@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediAI - Premium Medicine Reminder</title>
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            color: var(--text);
+        }
+
+        header {
+            background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+            color: white;
+            padding: 40px 20px;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 700px;
+            margin: -30px auto 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            margin-bottom: 25px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            text-align: left;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: transform 0.2s;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #064e3b;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        input {
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+            background-color: #fff;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.delete-btn {
+            background-color: #fee2e2;
+            color: var(--danger);
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            width: auto;
+            box-shadow: none;
+        }
+
+        button.delete-btn:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .reminder-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #f8fafc;
+            border-left: 5px solid var(--primary);
+            margin: 12px 0;
+            border-radius: 8px;
+            border-top: 1px solid #edf2f7;
+            border-right: 1px solid #edf2f7;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .reminder-info {
+            font-size: 1.05rem;
+        }
+
+        #result, #answer {
+            margin-top: 15px;
+            font-weight: 500;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        #answer {
+            background: #f1f5f9;
+            border-left: 4px solid #3b82f6;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        /* Upgrade Modal Alert Layout */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal {
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            animation: pulse 1s infinite alternate;
+            margin-bottom: 15px;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.15); }
+        }
+
+        .modal h3 {
+            margin: 10px 0;
+            font-size: 1.6rem;
+            color: #0f172a;
+        }
+
+        .modal p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+
+        .dismiss-btn {
+            background-color: var(--danger);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .dismiss-btn:hover {
+            background-color: var(--danger-hover);
+        }
+
+        footer {
+            background-color: #064e3b;
+            color: white;
+            padding: 20px;
+            margin-top: 60px;
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>MediAI</h1>
+    <p>Premium Medicine Reminder & Health Assistant</p>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Set Medicine Reminder</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="medicine">Medicine Name</label>
+                <input type="text" id="medicine" placeholder="e.g., Paracetamol, Vitamin D3">
+            </div>
+            <div class="form-group">
+                <label for="time">Time</label>
+                <input type="time" id="time">
+            </div>
+        </div>
+        <button onclick="setReminder()">Set Active Reminder</button>
+        <div id="result"></div>
+    </div>
+
+    <div class="card">
+        <h2>Active Schedules</h2>
+        <div id="reminderList">
+            <p style="color: var(--text-light); text-align: center;">No active reminders set.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>AI Medical Consultation Desk</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="question" placeholder="Ask about symptoms, dosages, or safety guidelines...">
+            <button onclick="chatbot()" style="width: auto; white-space: nowrap;">Ask Assistant</button>
+        </div>
+        <div id="answer" style="display: none;"></div>
+    </div>
+
+</div>
+
+<div class="modal-overlay" id="alarmModal">
+    <div class="modal">
+        <div class="modal-icon">🚨</div>
+        <h3>Medical Alert!</h3>
+        <p id="modalMedName">Time to take your medication.</p>
+        <button class="dismiss-btn" onclick="stopAlarm()">Acknowledge & Stop Alarm</button>
+    </div>
+</div>
+
+<footer>
+    <p>SDG 3: Good Health and Well-being | Secured with LocalStorage Web Audio Pipeline</p>
+</footer>
+
+<script>
+// Web Audio Audio Context Engine
+let audioCtx;
+let alarmLoopInterval = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playSound(type) {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'click') {
+        // High quality futuristic snap feedback
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    } else if (type === 'success') {
+        // Uplifting success chime double ring
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+    } else if (type === 'alarm') {
+        // Hospital grade vital monitor pulsing sound wave combo
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987.77, audioCtx.currentTime); // B5 (piercing medical note)
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+    }
+}
+
+// Optional text-to-speech engine to read medicine out loud
+function announceMedicine(medName) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(`Time to take your medication: ${medName}`);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+// Global Storage
+let reminders = JSON.parse(localStorage.getItem("mediAI_reminders")) || [];
+
+window.onload = function() {
+    renderReminders();
+    setInterval(checkReminders, 1000);
+    // Bind click gestures globally to resolve early browser browser security context bugs
+    document.body.addEventListener('click', initAudio, { once: true });
+};
+
+function setReminder() {
+    playSound('click');
+    let medicine = document.getElementById("medicine").value.trim();
+    let time = document.getElementById("time").value;
+    let resultElement = document.getElementById("result");
+
+    if (medicine && time) {
+        let newReminder = {
+            id: Date.now(),
+            medicine: medicine,
+            time: time,
+            triggeredToday: false
+        };
+
+        reminders.push(newReminder);
+        localStorage.setItem("mediAI_reminders", JSON.stringify(reminders));
+        
+        document.getElementById("medicine").value = "";
+        document.getElementById("time").value = "";
+
+        resultElement.style.color = "green";
+        resultElement.innerHTML = "✅ Reminder added successfully!";
+        setTimeout(() => playSound('success'), 150);
+        
+        renderReminders();
+    } else {
+        resultElement.style.color = "var(--danger)";
+        resultElement.innerHTML = "⚠ Please fill out both the medicine name and exact time.";
+    }
+}
+
+function renderReminders() {
+    let listContainer = document.getElementById("reminderList");
+    
+    if (reminders.length === 0) {
+        listContainer.innerHTML = `<p style="color: var(--text-light); text-align: center; margin: 10px 0;">Your medication schedule is currently empty.</p>`;
+        return;
+    }
+
+    listContainer.innerHTML = "";
+    reminders.forEach(item => {
+        let div = document.createElement("div");
+        div.className = "reminder-item";
+        div.innerHTML = `
+            <div class="reminder-info">
+                <strong>💊 ${item.medicine}</strong> at 🕒 ${item.time}
+            </div>
+            <button class="delete-btn" onclick="deleteReminder(${item.id})">Delete</button>
+        `;
+        listContainer.appendChild(div);
+    });
+}
+
+function deleteReminder(id) {
+    playSound('click');
+    reminders = reminders.filter(item => item.id !== id);
+    localStorage.setItem("mediAI_reminders", JSON.stringify(reminders));
+    renderReminders();
+}
+
+function checkReminders() {
+    let now = new Date();
+    let currentHours = String(now.getHours()).padStart(2, '0');
+    let currentMinutes = String(now.getMinutes()).padStart(2, '0');
+    let currentTimeString = `${currentHours}:${currentMinutes}`;
+
+    if (currentTimeString === "00:00") {
+        reminders.forEach(r => r.triggeredToday = false);
+        localStorage.setItem("mediAI_reminders", JSON.stringify(reminders));
+    }
+
+    reminders.forEach(reminder => {
+        if (reminder.time === currentTimeString && !reminder.triggeredToday) {
+            reminder.triggeredToday = true;
+            localStorage.setItem("mediAI_reminders", JSON.stringify(reminders));
+            
+            triggerAlarm(reminder.medicine);
+        }
+    });
+}
+
+function triggerAlarm(medName) {
+    // Show non-blocking modal 
+    document.getElementById("modalMedName").innerHTML = `It is time to take your dose of: <strong>${medName}</strong>`;
+    document.getElementById("alarmModal").style.display = "flex";
+
+    // Continuous audio loop sequence
+    if(alarmLoopInterval) clearInterval(alarmLoopInterval);
+    
+    playSound('alarm');
+    announceMedicine(medName); // Verbal announcement
+    
+    alarmLoopInterval = setInterval(() => {
+        playSound('alarm');
+    }, 1000);
+}
+
+function stopAlarm() {
+    playSound('click');
+    if (alarmLoopInterval) {
+        clearInterval(alarmLoopInterval);
+        alarmLoopInterval = null;
+    }
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop speaking immediately if clicked early
+    }
+    document.getElementById("alarmModal").style.display = "none";
+}
+
+function chatbot() {
+    playSound('click');
+    let question = document.getElementById("question").value.toLowerCase().trim();
+    let answerBox = document.getElementById("answer");
+    let response = "";
+
+    if (!question) {
+        response = "Please input a valid inquiry so the clinical logic model can process it.";
+    } else if (question.includes("paracetamol") || question.includes("acetaminophen")) {
+        response = "<strong>Paracetamol/Acetaminophen:</strong> Indicated for fever mitigation and mild/moderate pain control. Standard adult safety guidance limits consumption to a ceiling of 4000mg (4 grams) within any rolling 24-hour window to protect hepatic (liver) function.";
+    } else if (question.includes("vitamin")) {
+        response = "<strong>Vitamins:</strong> Critical regulatory micronutrients. Fat-soluble variants (A, D, E, K) demand lipid matrices for adequate absorption; ingest alongside dietary fats or main meals for optimized bioavailability.";
+    } else if (question.includes("fever") || question.includes("headache")) {
+        response = "<strong>Symptom Review:</strong> Low-grade primary pyrexia or simple tension cephalea typically responds well to dynamic hydration, physical rest, and monitored over-the-counter analgesics. Escalating patterns require standard assessment.";
+    } else if (question.includes("cough") || question.includes("cold")) {
+        response = "<strong>Upper Respiratory Overview:</strong> Prioritize warm fluid dynamic flow. Non-productive (dry) iterations benefit from peripheral antitussives, whereas productive variants indicate mucolytic expectorants to decrease mucus viscosity.";
+    } else if (question.includes("stomach")) {
+        response = "<strong>Gastrointestinal Discomfort:</strong> Frequently linked to transient dyspepsia, gas entrapment, or transient hyperacidity. It is recommended to rest the gut from solid matrices for 2-3 hours and rely on clear fluids.";
+    } else if (question.includes("hello") || question.includes("hi ") || question.includes("help")) {
+        response = "Welcome to the MediAI portal. I am configured to dispense primary pharmaceutical resource descriptions (e.g., Paracetamol, Vitamins) and fundamental symptomatic layout details.";
+    } else {
+        response = "Your query has been indexed, but current automated localized parameters are restricted. <strong>Please reach out to a certified medical professional</strong> for direct clinical diagnostics, comprehensive evaluation, and authenticated prescriptions.";
+    }
+
+    answerBox.style.display = "block";
+    answerBox.innerHTML = response;
+}
+</script>
+
+</body>
+</html>
